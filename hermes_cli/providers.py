@@ -136,6 +136,16 @@ HERMES_OVERLAYS: Dict[str, HermesOverlay] = {
         transport="openai_chat",
         base_url_env_var="XIAOMI_BASE_URL",
     ),
+    "volces": HermesOverlay(
+        transport="openai_chat",
+        base_url_env_var="VOLCES_BASE_URL",
+        extra_env_vars=("VOLCES_API_KEY",),
+    ),
+    "volces-anthropic": HermesOverlay(
+        transport="anthropic_messages",
+        base_url_env_var="VOLCES_ANTHROPIC_BASE_URL",
+        extra_env_vars=("VOLCES_API_KEY",),
+    ),
 }
 
 
@@ -229,7 +239,12 @@ ALIASES: Dict[str, str] = {
     # xiaomi
     "mimo": "xiaomi",
     "xiaomi-mimo": "xiaomi",
-
+    
+    # volces
+    "volcano": "volces",
+    "volces-engine": "volces",
+    "ark": "volces",
+    
     # Local server aliases → virtual "local" concept (resolved via user config)
     "lmstudio": "lmstudio",
     "lm-studio": "lmstudio",
@@ -252,6 +267,8 @@ _LABEL_OVERRIDES: Dict[str, str] = {
     "copilot-acp": "GitHub Copilot ACP",
     "xiaomi": "Xiaomi MiMo",
     "local": "Local endpoint",
+    "volces": "Volcano Engine",
+    "volces-anthropic": "Volcano Engine (Anthropic)",
 }
 
 

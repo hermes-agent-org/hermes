@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes - 多智能体控制面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #333;
+        }
+        
+        .card h2 {
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        
+        .stat-value.green { color: #4ade80; }
+        .stat-value.yellow { color: #fbbf24; }
+        .stat-value.red { color: #f87171; }
+        
+        .list {
+            list-style: none;
+        }
+        
+        .list-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-online { background: #166534; color: #4ade80; }
+        .badge-busy { background: #b45309; color: #fbbf24; }
+        .badge-offline { background: #333; color: #888; }
+        .badge-paused { background: #7c2d12; color: #f87171; }
+        
+        .badge-low { background: #166534; color: #4ade80; }
+        .badge-medium { background: #b45309; color: #fbbf24; }
+        .badge-high { background: #7c2d12; color: #f87171; }
+        
+        .task-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #333;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .task-meta {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #4ade80;
+            transition: width 0.3s;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-approve {
+            background: #166534;
+            color: #4ade80;
+        }
+        
+        .btn-approve:hover {
+            background: #15803d;
+        }
+        
+        .btn-reject {
+            background: #7c2d12;
+            color: #f87171;
+        }
+        
+        .btn-reject:hover {
+            background: #991b1b;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .refresh-btn {
+            background: #333;
+            color: #fff;
+            border: 1px solid #444;
+        }
+        
+        .refresh-btn:hover {
+            background: #444;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+        
+        .error {
+            background: #7c2d12;
+            color: #f87171;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #333;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Hermes 多智能体控制面板</h1>
+        <div class="status">
+            <div class="status-dot"></div>
+            <span>系统运行中</span>
+            <button class="btn refresh-btn" onclick="loadDashboard()" style="margin-left: 1rem;">
+                🔄 刷新
+            </button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div id="error-container"></div>
+        
+        <div class="grid">
+            <!-- Agent 概览 -->
+            <div class="card">
+                <h2>🤖 Agent 状态</h2>
+                <div class="stat-grid" id="agent-stats">
+                    <div class="loading">加载中...</div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <h3 style="font-size: 0.9rem; color: #888; margin-bottom: 0.5rem;">在线 Agent</h3>
+                    <ul class="list" id="agent-list"></ul>
+                </div>
+            </div>
+            
+            <!-- 任务概览 -->
+            <div class="card">
+                <h2>📋 任务状态</h2>
+                <div class="stat-grid" id="task-stats">
+                    <div class="loading">加载中...</div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <h3 style="font-size: 0.9rem; color: #888; margin-bottom: 0.5rem;">最近任务</h3>
+                    <div id="task-list"></div>
+                </div>
+            </div>
+            
+            <!-- 审批中心 -->
+            <div class="card">
+                <h2>✅ 待审批事项</h2>
+                <div class="stat-grid" id="approval-stats">
+                    <div class="loading">加载中...</div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <h3 style="font-size: 0.9rem; color: #888; margin-bottom: 0.5rem;">待审批列表</h3>
+                    <div id="approval-list"></div>
+                </div>
+            </div>
+            
+            <!-- 审计日志 -->
+            <div class="card">
+                <h2>📝 最近活动</h2>
+                <div id="audit-list">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api/multi-agent';
+        
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard`);
+                const data = await response.json();
+                
+                if (data.status !== 'ok') {
+                    throw new Error('API 返回异常');
+                }
+                
+                renderAgents(data.agents);
+                renderTasks(data.tasks);
+                renderApprovals(data.approvals);
+                renderAudit(data.audit);
+            } catch (error) {
+                document.getElementById('error-container').innerHTML = `
+                    <div class="error">加载失败：${error.message}</div>
+                `;
+            }
+        }
+        
+        function renderAgents(agents) {
+            document.getElementById('agent-stats').innerHTML = `
+                <div class="stat">
+                    <div class="stat-value green">${agents.online}</div>
+                    <div class="stat-label">在线</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${agents.total_agents}</div>
+                    <div class="stat-label">总计</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value yellow">${agents.paused}</div>
+                    <div class="stat-label">暂停</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" style="color: #666">${agents.offline}</div>
+                    <div class="stat-label">离线</div>
+                </div>
+            `;
+            
+            const agentList = document.getElementById('agent-list');
+            const onlineAgents = agents.agents.filter(a => a.status === 'online' || a.status === 'busy');
+            
+            if (onlineAgents.length === 0) {
+                agentList.innerHTML = '<li class="empty-state">暂无在线 Agent</li>';
+                return;
+            }
+            
+            agentList.innerHTML = onlineAgents.slice(0, 5).map(agent => `
+                <li class="list-item">
+                    <div>
+                        <strong>${agent.agent_id}</strong>
+                        <div class="task-meta">${agent.role}</div>
+                    </div>
+                    <span class="badge badge-${agent.status}">${agent.status}</span>
+                </li>
+            `).join('');
+        }
+        
+        function renderTasks(tasks) {
+            document.getElementById('task-stats').innerHTML = `
+                <div class="stat">
+                    <div class="stat-value">${tasks.today_tasks}</div>
+                    <div class="stat-label">今日任务</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value green">${tasks.today_completed}</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value yellow">${tasks.queue_length}</div>
+                    <div class="stat-label">队列中</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${tasks.total_tasks}</div>
+                    <div class="stat-label">总计</div>
+                </div>
+            `;
+            
+            const taskList = document.getElementById('task-list');
+            const recentTasks = tasks.recent_tasks.slice(0, 5);
+            
+            if (recentTasks.length === 0) {
+                taskList.innerHTML = '<div class="empty-state">暂无任务</div>';
+                return;
+            }
+            
+            taskList.innerHTML = recentTasks.map(task => `
+                <div class="task-item">
+                    <div class="task-header">
+                        <span class="task-title">${task.task_type}</span>
+                        <span class="badge badge-${task.status}">${task.status}</span>
+                    </div>
+                    <div class="task-meta">${task.description}</div>
+                    <div class="task-meta">来源：${task.source_agent} | ${new Date(task.created_at).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+        
+        function renderApprovals(approvals) {
+            document.getElementById('approval-stats').innerHTML = `
+                <div class="stat">
+                    <div class="stat-value yellow">${approvals.pending_count}</div>
+                    <div class="stat-label">待审批</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" style="color: #4ade80">${approvals.by_risk_level.low}</div>
+                    <div class="stat-label">低风险</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" style="color: #fbbf24">${approvals.by_risk_level.medium}</div>
+                    <div class="stat-label">中风险</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" style="color: #f87171">${approvals.by_risk_level.high}</div>
+                    <div class="stat-label">高风险</div>
+                </div>
+            `;
+            
+            const approvalList = document.getElementById('approval-list');
+            const pendingItems = approvals.pending_items;
+            
+            if (pendingItems.length === 0) {
+                approvalList.innerHTML = '<div class="empty-state">无需审批</div>';
+                return;
+            }
+            
+            approvalList.innerHTML = pendingItems.map(approval => `
+                <div class="task-item">
+                    <div class="task-header">
+                        <span class="task-title">${approval.action_type}</span>
+                        <span class="badge badge-${approval.risk_level}">${approval.risk_level}</span>
+                    </div>
+                    <div class="task-meta">请求者：${approval.requested_by}</div>
+                    <div class="task-meta">${approval.reason}</div>
+                    <div class="btn-group" style="margin-top: 0.5rem;">
+                        <button class="btn btn-approve" onclick="approve('${approval.approval_id}')">批准</button>
+                        <button class="btn btn-reject" onclick="reject('${approval.approval_id}')">拒绝</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderAudit(audit) {
+            const auditList = document.getElementById('audit-list');
+            const recentLogs = audit.recent_logs.slice(0, 8);
+            
+            if (recentLogs.length === 0) {
+                auditList.innerHTML = '<div class="empty-state">暂无活动记录</div>';
+                return;
+            }
+            
+            auditList.innerHTML = recentLogs.map(log => `
+                <div class="list-item">
+                    <div>
+                        <strong>${log.event_type}</strong>
+                        <div class="task-meta">${log.action} by ${log.actor}</div>
+                    </div>
+                    <span class="badge badge-${log.risk_level}">${log.risk_level}</span>
+                </div>
+            `).join('');
+        }
+        
+        async function approve(approvalId) {
+            try {
+                const response = await fetch(`${API_BASE}/approvals/${approvalId}/approve`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({reason: '用户批准'})
+                });
+                const result = await response.json();
+                if (result.status === 'ok') {
+                    loadDashboard();
+                }
+            } catch (error) {
+                alert('批准失败：' + error.message);
+            }
+        }
+        
+        async function reject(approvalId) {
+            try {
+                const response = await fetch(`${API_BASE}/approvals/${approvalId}/reject`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({reason: '用户拒绝'})
+                });
+                const result = await response.json();
+                if (result.status === 'ok') {
+                    loadDashboard();
+                }
+            } catch (error) {
+                alert('拒绝失败：' + error.message);
+            }
+        }
+        
+        // 初始加载
+        loadDashboard();
+        
+        // 每 30 秒自动刷新
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>

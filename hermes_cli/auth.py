@@ -258,6 +258,22 @@ PROVIDER_REGISTRY: Dict[str, ProviderConfig] = {
         api_key_env_vars=("XIAOMI_API_KEY",),
         base_url_env_var="XIAOMI_BASE_URL",
     ),
+    "volces": ProviderConfig(
+        id="volces",
+        name="Volcano Engine",
+        auth_type="api_key",
+        inference_base_url="https://ark.cn-beijing.volces.com/api/coding/v3",
+        api_key_env_vars=("VOLCES_API_KEY",),
+        base_url_env_var="VOLCES_BASE_URL",
+    ),
+    "volces-anthropic": ProviderConfig(
+        id="volces-anthropic",
+        name="Volcano Engine (Anthropic)",
+        auth_type="api_key",
+        inference_base_url="https://ark.cn-beijing.volces.com/api/coding",
+        api_key_env_vars=("VOLCES_API_KEY",),
+        base_url_env_var="VOLCES_ANTHROPIC_BASE_URL",
+    ),
 }
 
 
@@ -941,6 +957,7 @@ def resolve_provider(
         "mimo": "xiaomi", "xiaomi-mimo": "xiaomi",
         "go": "opencode-go", "opencode-go-sub": "opencode-go",
         "kilo": "kilocode", "kilo-code": "kilocode", "kilo-gateway": "kilocode",
+        "volcano": "volces", "volces-engine": "volces", "ark": "volces",
         # Local server aliases — route through the generic custom provider
         "lmstudio": "custom", "lm-studio": "custom", "lm_studio": "custom",
         "ollama": "custom", "vllm": "custom", "llamacpp": "custom",
